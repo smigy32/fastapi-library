@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from api.dependencies import get_current_user
 from api.models import BookModel, AuthorModel, UserModel
 from api.schemas.book import Book, BookCreate, BookUpdate
+from api.security import admin_required
 
 
 router = APIRouter(
@@ -33,6 +34,7 @@ def get_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
 
 
 @router.post("/", status_code=201, response_model=Book)  # create a new book
+@admin_required
 def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_current_user)):
     print(book_data)
     invalid_body_exception = HTTPException(
@@ -52,6 +54,7 @@ def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_cur
 
 
 @router.put("/{book_id}", response_model=Book)
+@admin_required
 def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = Depends(get_current_user)):
     book = BookModel.get_by_id(book_id)
     if not book:
@@ -72,6 +75,7 @@ def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = D
 
 
 @router.delete("/{book_id}")
+@admin_required
 def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
     status_code = BookModel.delete_by_id(book_id)
     if status_code == 200:

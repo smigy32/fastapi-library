@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from api.dependencies import get_current_user
 from api.models import UserModel
 from api.schemas import user
+from api.security import admin_required
 
 
 router = APIRouter(
@@ -12,6 +13,7 @@ router = APIRouter(
 
 
 @router.get("/", response_model=list[user.User])
+@admin_required
 def get_users(current_user: UserModel = Depends(get_current_user)):
     # Логіка обробки запиту
     users = UserModel.return_all()
@@ -20,6 +22,7 @@ def get_users(current_user: UserModel = Depends(get_current_user)):
 
 
 @router.get("/{user_id}", response_model=user.User)
+@admin_required
 def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
     user = UserModel.get_by_id(user_id)
     if user:
@@ -29,14 +32,16 @@ def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
 
 
 @router.post("/", status_code=201)
+@admin_required
 def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(get_current_user)):
     new_user = UserModel(name=user_data.name, login=user_data.login,
-                    hashed_password=User.generate_hash(user_data.password))
+                    hashed_password=UserModel.generate_hash(user_data.password))
     new_user.save_to_db()
     return {"id": new_user.id}
 
 
 @router.put("/{user_id}", response_model=user.User)
+@admin_required
 def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserModel = Depends(get_current_user)):
     user = UserModel.get_by_id(user_id)
 
@@ -61,6 +66,7 @@ def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserMode
 
 
 @router.delete("/{user_id}")
+@admin_required
 def delete_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
     status_code = UserModel.delete_by_id(user_id)
     if status_code == 200:

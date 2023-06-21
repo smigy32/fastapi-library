@@ -1,38 +1,16 @@
-from datetime import datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from jose import jwt
 
-from api import fastapi_config
 from api.models import UserModel
 from api.schemas import auth, user
+from api.security import create_access_token, create_refresh_token
 
 
 router = APIRouter(
     tags=["auth"]
 )
-
-
-def create_access_token(subject: str) -> str:
-    expires_delta = datetime.utcnow(
-    ) + timedelta(minutes=fastapi_config.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    to_encode = {"exp": expires_delta, "sub": subject}
-    encoded_jwt = jwt.encode(
-        to_encode, fastapi_config.JWT_SECRET_KEY, fastapi_config.ALGORITHM)
-    return encoded_jwt
-
-
-def create_refresh_token(subject: str) -> str:
-    expires_delta = datetime.utcnow(
-    ) + timedelta(minutes=fastapi_config.REFRESH_TOKEN_EXPIRE_MINUTES)
-
-    to_encode = {"exp": expires_delta, "sub": subject}
-    encoded_jwt = jwt.encode(
-        to_encode, fastapi_config.JWT_REFRESH_SECRET_KEY, fastapi_config.ALGORITHM)
-    return encoded_jwt
 
 
 @router.post("/login", response_model=auth.Token)
@@ -54,8 +32,8 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     if UserModel.verify_hash(password, user.hashed_password):
         # generates the JWT Token
         return {
-            "access_token": create_access_token(subject=user.login),
-            "refresh_token": create_refresh_token(subject=user.login),
+            "access_token": create_access_token(subject=user.login, user=user),
+            "refresh_token": create_refresh_token(subject=user.login, user=user),
         }
     else:
         raise HTTPException(

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from api.dependencies import get_current_user
 from api.models import BookModel, AuthorModel, UserModel
 from api.schemas.author import Author, AuthorCreate, AuthorUpdate
+from api.security import admin_required
 
 
 router = APIRouter(
@@ -31,6 +32,7 @@ def get_author(author_id: int, current_user: UserModel = Depends(get_current_use
 
 
 @router.post("/", status_code=201, response_model=Author)
+@admin_required
 def create_author(author_data: AuthorCreate, current_user: UserModel = Depends(get_current_user)):
     if not author_data or not author_data.name:  # a post request mustn't be empty
         raise HTTPException(
@@ -42,6 +44,7 @@ def create_author(author_data: AuthorCreate, current_user: UserModel = Depends(g
 
 
 @router.put("/{author_id}", response_model=Author)
+@admin_required
 def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserModel = Depends(get_current_user)):
     author = AuthorModel.get_by_id(author_id)
     if not author:
@@ -61,6 +64,7 @@ def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserM
 
 
 @router.delete("/{author_id}")
+@admin_required
 def delete_author(author_id: int, current_user: UserModel = Depends(get_current_user)):
     status_code = AuthorModel.delete_by_id(author_id)
     if status_code == 200:
