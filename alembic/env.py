@@ -7,7 +7,7 @@ from alembic import context
 
 from api import fastapi_config
 from api.database.database import Base
-from api.models import User
+from api.models import UserModel
 
 
 # this is the Alembic Config object, which provides

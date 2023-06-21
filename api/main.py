@@ -12,9 +12,11 @@ def setup_database():
 def create_app():
     app = FastAPI()
     setup_database()
-    from api.routers import users, auth
+    from api.routers import users, auth, books, authors
     app.include_router(users.router)
     app.include_router(auth.router)
+    app.include_router(books.router)
+    app.include_router(authors.router)
     return app
 
 

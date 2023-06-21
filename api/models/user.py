@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean
 from api.database.database import Base, session
 
 
-class User(Base):
+class UserModel(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
@@ -13,7 +13,7 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     def __repr__(self):
-        return f"<User(id={self.id}, name='{self.name}')>"
+        return f"<UserModel(id={self.id}, name='{self.name}')>"
 
     @classmethod
     def return_all(cls):

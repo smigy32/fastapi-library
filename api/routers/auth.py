@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from jose import jwt
 
 from api import fastapi_config
-from api.models import User
+from api.models import UserModel
 from api.schemas import auth, user
 
 
@@ -44,14 +44,14 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
         raise HTTPException(
             status_code=400, detail="You have to provide both login and password")
 
-    user = User.get_by_login(login)
+    user = UserModel.get_by_login(login)
 
     if not user:
         # returns 401 if user does not exist
         raise HTTPException(
             status_code=401, detail="Authentification failed! Check entered values")
 
-    if User.verify_hash(password, user.hashed_password):
+    if UserModel.verify_hash(password, user.hashed_password):
         # generates the JWT Token
         return {
             "access_token": create_access_token(subject=user.login),
@@ -69,13 +69,13 @@ def signup(user_data: user.UserCreate):
     name, login = user_data.name, user_data.login
     password = user_data.password
     # checking for existing user
-    user = User.get_by_login(login)
+    user = UserModel.get_by_login(login)
     if not user:
         # database ORM object
-        user = User(
+        user = UserModel(
             name=name,
             login=login,
-            hashed_password=User.generate_hash(password)
+            hashed_password=UserModel.generate_hash(password)
         )
         # insert user
         user.save_to_db()
