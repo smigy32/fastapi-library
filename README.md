@@ -54,20 +54,20 @@ The following endpoints are available in the API:
 - `POST /signup`: User registration
 - `POST /login`: User Login
 
-- `GET /users`: Get a list of all users.
-- `GET /users/{user_id}`: Get details of a specific user by ID.
-- `POST /users`: Create a new user.
-- `PUT /users/{user_id}`: Update an existing user by ID.
-- `DELETE /users/{user_id}`: Delete a user by ID.
+- `GET /users`: Get a list of all users. <span style="color:yellow">*Admin only*</span>
+- `GET /users/{user_id}`: Get details of a specific user by ID. <span style="color:yellow">*Admin only*</span>
+- `POST /users`: Create a new user. <span style="color:yellow">*Admin only*</span>
+- `PUT /users/{user_id}`: Update an existing user by ID. <span style="color:yellow">*Admin only*</span>
+- `DELETE /users/{user_id}`: Delete a user by ID. <span style="color:yellow">*Admin only*</span>
 
 - `GET /books`: Get a list of all books.
 - `GET /books/{book_id}`: Get details of a specific book by ID.
-- `POST /books`: Create a new book.
-- `PUT /books/{book_id}`: Update an existing book by ID.
-- `DELETE /books/{book_id}`: Delete a book by ID.
+- `POST /books`: Create a new book. <span style="color:yellow">*Admin only*</span>
+- `PUT /books/{book_id}`: Update an existing book by ID. <span style="color:yellow">*Admin only*</span>
+- `DELETE /books/{book_id}`: Delete a book by ID. <span style="color:yellow">*Admin only*</span>
 
-- `GET /authors`: Get a list of all authors.
+- `GET /authors`: Get a list of all authors. 
 - `GET /authors/{author_id}`: Get details of a specific author by ID.
-- `POST /authors`: Create a new author.
-- `PUT /authors/{author_id}`: Update an existing author by ID.
-- `DELETE /authors/{author_id}`: Delete an author by ID.
+- `POST /authors`: Create a new author. <span style="color:yellow">*Admin only*</span>
+- `PUT /authors/{author_id}`: Update an existing author by ID. <span style="color:yellow">*Admin only*</span>
+- `DELETE /authors/{author_id}`: Delete an author by ID. <span style="color:yellow">*Admin only*</span>
