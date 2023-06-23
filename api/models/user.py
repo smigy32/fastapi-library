@@ -19,9 +19,9 @@ class UserModel(Base):
     @classmethod
     def return_all(cls):
         """
-        Fetches all users from database
+        Fetch all users from database
         Returns:
-            list: List of all users
+            list[User]: List of all users
         """
         users = session.query(cls).filter_by(is_active=True).all()
         return users
@@ -29,12 +29,12 @@ class UserModel(Base):
     @classmethod
     def get_by_id(cls, user_id: int):
         """
-        Fetches a user by his id
+        Fetch a user by his id
         Args:
             user_id (int): User id 
 
         Returns:
-            dict: Dict object with a user's values
+            User: User with the specified ID
         """
         user = session.query(cls).filter_by(id=user_id, is_active=True).first()
         return user
@@ -42,12 +42,12 @@ class UserModel(Base):
     @classmethod
     def get_by_login(cls, login: str, to_dict=True):
         """
-        Fetches a user by his login
+        Fetch a user by his login
         Args:
             login (str): Login of a user
 
         Returns:
-            dict: Dict object with a user's values
+            User: User with a certain login
         """
         user = session.query(cls).filter_by(
             login=login, is_active=True).first()
@@ -55,7 +55,7 @@ class UserModel(Base):
 
     def save_to_db(self):
         """
-        Saves changes to db
+        Save changes to db
         """
         session.add(self)
         session.commit()
@@ -63,7 +63,7 @@ class UserModel(Base):
     @classmethod
     def delete_by_id(cls, user_id: int):
         """
-        Allows to delete a user by id.
+        Delete a user by id.
         After deleting is_active attribute sets to False
         Args:
             user_id (int): User id 
@@ -83,7 +83,7 @@ class UserModel(Base):
     @staticmethod
     def generate_hash(password):
         """
-        Hashes a password via sha256 hash function
+        Hash a password via sha256 hash function
         :param password: Some reader's password
         :return: Hashed password
         """
@@ -92,7 +92,7 @@ class UserModel(Base):
     @staticmethod
     def verify_hash(password, password_hash):
         """
-        Checks if a password is valid
+        Check if a password is valid
         :param password: Some reader's password
         :param password_hash: Hashed password from database
         :return: Bool value that shows if the password is valid
