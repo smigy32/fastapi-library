@@ -16,7 +16,6 @@ class AuthorUpdate(AuthorBase):
 class Author(AuthorBase):
     id: int
     books: list[dict]
-    
-    
+
     class Config:
         orm_mode = True

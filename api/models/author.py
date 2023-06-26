@@ -14,8 +14,7 @@ class AuthorModel(Base):
     books = relationship(
         "BookModel", secondary=book_author_association, back_populates="authors")
     is_active = Column(Boolean, default=True)
-    
-    
+
     @classmethod
     def return_all(cls):
         """
@@ -60,10 +59,10 @@ class AuthorModel(Base):
     def get_by_name(cls, name: str):
         """
         Get authors by name.
-    
+
         Args:
             name (str): The name of the authors to retrieve.
-    
+
         Returns:
             List[Author]: List of authors with the specified name.
         """
@@ -79,7 +78,7 @@ class AuthorModel(Base):
             author_id (int): The ID of the author to delete.
 
         Returns:
-            int: The status code indicating the success of the operation (200 if successful, 404 if the author was not found).
+            int: The status code indicating the success of the operation (200 if success, 404 if the author not found).
         """
         author = session.query(cls).filter_by(
             id=author_id, is_active=True).first()
@@ -95,8 +94,7 @@ class AuthorModel(Base):
         """
         session.add(self)
         session.commit()
-        
-        
+
     def to_dict(self):
         """
         Convert the author object to a dictionary.

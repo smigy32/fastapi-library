@@ -46,7 +46,7 @@ class BookModel(Base):
         """
         book = session.query(cls).filter_by(id=book_id, is_active=True).first()
         return book
-    
+
     @classmethod
     def get_by_ids(cls, book_ids: list[int]):
         """
@@ -65,10 +65,10 @@ class BookModel(Base):
     def get_by_title(cls, title: str):
         """
         Get books by title.
-    
+
         Args:
             title (str): The title of the books to retrieve.
-    
+
         Returns:
             List[Book]: List of books with the specified title.
         """
@@ -85,7 +85,7 @@ class BookModel(Base):
             book_id (int): The ID of the book to delete.
 
         Returns:
-            int: The status code indicating the success of the operation (200 if successful, 404 if the book was not found).
+            int: The status code indicating the success of the operation (200 if success, 404 if the book not found).
         """
         book = session.query(cls).filter_by(
             id=book_id, is_active=True).first()
@@ -102,8 +102,7 @@ class BookModel(Base):
         """
         session.add(self)
         session.commit()
-        
-        
+
     def to_dict(self):
         """
         Convert the book object to a dictionary.

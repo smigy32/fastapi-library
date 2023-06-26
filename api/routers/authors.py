@@ -42,7 +42,6 @@ def create_author(author_data: AuthorCreate, current_user: UserModel = Depends(g
     return new_author.to_dict()
 
 
-
 @router.put("/{author_id}", response_model=Author)
 @admin_required
 def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserModel = Depends(get_current_user)):
@@ -59,6 +58,7 @@ def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserM
     books = BookModel.get_by_ids(
         book_ids) if book_ids else author.books
     author.books = books
+    author.name = name
     author.save_to_db()
     return author.to_dict()
 

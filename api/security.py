@@ -28,8 +28,6 @@ def create_refresh_token(subject: str, user: UserModel) -> str:
         to_encode, fastapi_config.JWT_REFRESH_SECRET_KEY, fastapi_config.ALGORITHM)
     return encoded_jwt
 
-from fastapi import HTTPException, Depends
-
 
 def admin_required(func):
     @wraps(func)
@@ -38,4 +36,3 @@ def admin_required(func):
             raise HTTPException(status_code=403, detail="Access forbidden")
         return func(*args, **kwargs)
     return wrapper
-

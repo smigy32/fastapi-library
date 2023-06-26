@@ -31,7 +31,7 @@ class UserModel(Base):
         """
         Fetch a user by his id
         Args:
-            user_id (int): User id 
+            user_id (int): User id
 
         Returns:
             User: User with the specified ID
@@ -66,7 +66,7 @@ class UserModel(Base):
         Delete a user by id.
         After deleting is_active attribute sets to False
         Args:
-            user_id (int): User id 
+            user_id (int): User id
 
         Returns:
             int: Status code
@@ -78,7 +78,6 @@ class UserModel(Base):
             return 200
         else:
             return 404
-        
 
     @staticmethod
     def generate_hash(password):

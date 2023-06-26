@@ -35,7 +35,7 @@ def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
 @admin_required
 def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(get_current_user)):
     new_user = UserModel(name=user_data.name, login=user_data.login,
-                    hashed_password=UserModel.generate_hash(user_data.password))
+                         hashed_password=UserModel.generate_hash(user_data.password))
     new_user.save_to_db()
     return {"id": new_user.id}
 
