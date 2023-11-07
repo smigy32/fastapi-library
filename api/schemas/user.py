@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class UserBase(BaseModel):
     name: str
     login: str
+    email: str | None
 
 
 # Поля, потрібні лише для створення
@@ -13,7 +14,7 @@ class UserCreate(UserBase):
 
 
 # Поля, потрібні лише для апдейту
-class UserUpdate(BaseModel):
+class UserUpdate(UserBase):
     name: str | None
     login: str | None
     password: str | None

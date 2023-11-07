@@ -12,6 +12,7 @@ class UserModel(Base):
     hashed_password = Column(String(150), nullable=False)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean(), default=False)
+    email = Column(String(), unique=True)
 
     def __repr__(self):
         return f"<UserModel(id={self.id}, name='{self.name}')>"

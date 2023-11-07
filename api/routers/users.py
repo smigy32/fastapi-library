@@ -48,18 +48,15 @@ def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserMode
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not any([user_data.name, user_data.login, user_data.password]):
+    if not any([user_data.name, user_data.login, user_data.password, user_data.email]):
         raise HTTPException(
             status_code=400, detail="Please provide valid information about the user")
 
-    name = user_data.name or user.name
-    login = user_data.login or user.login
-    password = user_data.password
-
-    user.name = name
-    user.login = login
+    user.name = user_data.name or user.name
+    user.login = user_data.login or user.login
+    user.email = user_data.email or user.email
     user.hashed_password = UserModel.generate_hash(
-        password) if password else user.hashed_password
+        user_data.password) if user_data.password else user.hashed_password
     user.save_to_db()
 
     return user
