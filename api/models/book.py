@@ -21,6 +21,7 @@ class BookModel(Base):
     authors = relationship(
         "AuthorModel", secondary=book_author_association, back_populates="books")
     is_active = Column(Boolean, default=True)
+    description = Column(String)
 
     @classmethod
     def return_all(cls):
@@ -113,5 +114,6 @@ class BookModel(Base):
         return {
             "id": self.id,
             "title": self.title,
+            "description": self.description,
             "authors": [{"id": author.id, "name": author.name} for author in self.authors]
         }

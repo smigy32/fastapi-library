@@ -44,10 +44,11 @@ def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_cur
         raise invalid_body_exception
 
     title, author_ids = book_data.title, book_data.author_ids
+    description = book_data.description
 
     authors = AuthorModel.get_by_ids(
         author_ids) if book_data.author_ids else []
-    new_book = BookModel(title=title, authors=authors)
+    new_book = BookModel(title=title, authors=authors, description=description)
     print(new_book.title)
     new_book.save_to_db()
     return new_book.to_dict()
@@ -64,12 +65,14 @@ def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = D
             status_code=400, detail="Please fill in some information about the book!")
     title = book_data.title or book.title
     author_ids = book_data.author_ids
+    description = book_data.description or book.description
 
     authors = AuthorModel.get_by_ids(
         author_ids) if author_ids else book.authors
 
     book.title = title
     book.authors = authors
+    book.description = description
     book.save_to_db()
     return book.to_dict()
 

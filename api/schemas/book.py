@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 class BookBase(BaseModel):
     title: str
+    description: str | None
 
 
 class BookCreate(BookBase):
