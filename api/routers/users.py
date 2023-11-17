@@ -4,7 +4,7 @@ from api.dependencies import get_current_user
 from api.models import UserModel
 from api.schemas import user
 from api.security import admin_required
-from api.email_settings import send_email
+from api.email_settings import send_welcome_email
 
 
 router = APIRouter(
@@ -39,7 +39,7 @@ def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(ge
                          hashed_password=UserModel.generate_hash(user_data.password))
     if user_data.email:
         new_user.email = user_data.email
-        send_email(email_to=user_data.email, name=user_data.name)
+        send_welcome_email(email_to=user_data.email, body={"name": user_data.name})
     new_user.save_to_db()
     return {"id": new_user.id}
 

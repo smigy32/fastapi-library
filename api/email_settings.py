@@ -1,28 +1,40 @@
 import os
 from dotenv import load_dotenv
-import smtplib
-from email.message import EmailMessage
+from fastapi_mail import FastMail, MessageSchema, MessageType, ConnectionConfig
 
 
 project_root = os.getcwd()
 load_dotenv(os.path.join(project_root, ".env"))
 
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+class Envs:
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+    MAIL_FROM = os.getenv("MAIL_FROM")
+    MAIL_PORT = int(os.getenv("MAIL_PORT"))
+    MAIL_SERVER = os.getenv("MAIL_SERVER")
 
 
-def send_email(email_to: str, name: str):
-    print(f"{EMAIL_ADDRESS}, {EMAIL_PASSWORD}")
+conf = ConnectionConfig(
+    MAIL_USERNAME=Envs.MAIL_USERNAME,
+    MAIL_PASSWORD=Envs.MAIL_PASSWORD,
+    MAIL_FROM=Envs.MAIL_FROM,
+    MAIL_PORT=Envs.MAIL_PORT,
+    MAIL_SERVER=Envs.MAIL_SERVER,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+    TEMPLATE_FOLDER=os.path.join(project_root, "api/templates/email")
+)
+
+
+async def send_welcome_email(email_to: str, body: dict):
     # create email
-    msg = EmailMessage()
-    msg["Subject"] = "Welcome!"
-    msg["From"] = EMAIL_ADDRESS
-    msg["To"] = email_to
-    msg.set_content(
-        f"Welcome to the library, {name}!\n"
-        "Enjoy your adventure in the world of books!"
+    message = MessageSchema(
+        subject="Welcome!",
+        recipients=[email_to],
+        template_body=body,
+        subtype=MessageType.html,
     )
-    # send email
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.send_message(msg)
+
+    fm = FastMail(conf)
+    await fm.send_message(message, template_name="welcome.html")
