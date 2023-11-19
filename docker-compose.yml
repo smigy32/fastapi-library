@@ -12,6 +12,12 @@ services:
       - ./db-data:/var/lib/postgresql/data
     networks:
       - library-network
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    networks:
+      - library-network
   library-api:
     build: .
     depends_on:

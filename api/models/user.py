@@ -98,3 +98,19 @@ class UserModel(Base):
         :return: Bool value that shows if the password is valid
         """
         return sha256.verify(password, password_hash)
+
+    def to_dict(self):
+        """
+        Convert a user object to a dictionary.
+
+        Returns:
+            dict: Dictionary representation of a user object.
+        """
+        return {
+            "id": self.id,
+            "login": self.login,
+            "name": self.name,
+            "email": self.email,
+            "is_active": self.is_active,
+            "is_admin": self.is_admin,
+        }

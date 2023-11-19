@@ -5,6 +5,7 @@ from api.models import UserModel
 from api.schemas import user
 from api.security import admin_required
 from api.email_settings import send_welcome_email
+from api.redis import cache_it
 
 
 router = APIRouter(
@@ -15,11 +16,11 @@ router = APIRouter(
 
 @router.get("/", response_model=list[user.User])
 @admin_required
+@cache_it("users")
 def get_users(current_user: UserModel = Depends(get_current_user)):
     # Логіка обробки запиту
     users = UserModel.return_all()
-    print(users)
-    return users
+    return [user.to_dict() for user in users]
 
 
 @router.get("/{user_id}", response_model=user.User)
