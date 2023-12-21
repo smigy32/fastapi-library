@@ -65,6 +65,7 @@ The following endpoints are available in the API:
 - `POST /books`: Create a new book. <span style="color:yellow">*Admin only*</span>
 - `PUT /books/{book_id}`: Update an existing book by ID. <span style="color:yellow">*Admin only*</span>
 - `DELETE /books/{book_id}`: Delete a book by ID. <span style="color:yellow">*Admin only*</span>
+- `GET /books/pdf/`: Get a PDF catalog of all books.
 
 - `GET /authors`: Get a list of all authors. 
 - `GET /authors/{author_id}`: Get details of a specific author by ID.

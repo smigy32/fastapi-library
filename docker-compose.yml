@@ -28,6 +28,29 @@ services:
       - .:/fastapi-library
     networks:
       - library-network
+  celery_worker:
+    container_name: celery_worker
+    build: .
+    command: celery -A api.tasks.tasks worker --pool=solo --loglevel=info
+    volumes:
+      - .:/fastapi-library
+    depends_on:
+      - redis
+      - library-api
+    networks:
+      - library-network
+  flower:
+    container_name: flower
+    build: .
+    command: celery -A api.tasks.tasks flower --port=5555
+    ports:
+      - 5556:5555
+    depends_on:
+      - library-api
+      - redis
+      - celery_worker
+    networks:
+      - library-network
     
 networks:
   library-network:

@@ -5,6 +5,8 @@ from api.models import BookModel, AuthorModel, UserModel
 from api.schemas.book import Book, BookCreate, BookUpdate
 from api.security import admin_required
 from api.redis import cache_it
+from api.tasks.tasks import generate_pdf
+from api.email_settings import send_catalog
 
 
 router = APIRouter(
@@ -87,3 +89,12 @@ def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user
         return {"detail": "Book has been deleted"}
     elif status_code == 404:
         raise HTTPException(status_code=404, detail="Book not found")
+
+
+@router.get("/pdf/")
+@cache_it("books")
+async def generate_catalog(current_user: UserModel = Depends(get_current_user)):
+    books = [book.to_dict() for book in BookModel.return_all()]
+    generate_pdf.delay(books, "books")
+    await send_catalog(email_to=current_user.email, body={"name": current_user.name})
+    return books

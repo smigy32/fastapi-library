@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from fastapi import UploadFile
 from fastapi_mail import FastMail, MessageSchema, MessageType, ConnectionConfig
 
 
@@ -38,3 +39,20 @@ async def send_welcome_email(email_to: str, body: dict):
 
     fm = FastMail(conf)
     await fm.send_message(message, template_name="welcome.html")
+
+
+async def send_catalog(email_to: str, body: dict):
+    root = os.getcwd()
+    catalog_path = os.path.join(root, "attachments/catalog.pdf")
+    with open(catalog_path, "rb") as catalog:
+        upload_file = UploadFile(filename="catalog.pdf", file=catalog)
+        # create email
+        message = MessageSchema(
+            subject="Welcome!",
+            recipients=[email_to],
+            template_body=body,
+            subtype=MessageType.html,
+            attachments=[upload_file]
+        )
+        fm = FastMail(conf)
+        await fm.send_message(message, template_name="catalog.html")
