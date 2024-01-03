@@ -4,14 +4,13 @@ import uvicorn
 from api.database.database import Base, engine
 
 
-def setup_database():
-    print(Base.metadata)
-    Base.metadata.create_all(engine)
+def setup_database(db_engine):
+    Base.metadata.create_all(db_engine)
 
 
-def create_app():
+def create_app(db_engine):
     app = FastAPI()
-    setup_database()
+    setup_database(db_engine)
     from api.routers import users, auth, books, authors
     app.include_router(users.router)
     app.include_router(auth.router)
@@ -20,7 +19,7 @@ def create_app():
     return app
 
 
-app = create_app()
+app = create_app(engine)
 
 
 @app.get("/")

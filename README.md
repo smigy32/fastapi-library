@@ -67,8 +67,20 @@ The following endpoints are available in the API:
 - `DELETE /books/{book_id}`: Delete a book by ID. <span style="color:yellow">*Admin only*</span>
 - `GET /books/pdf/`: Get a PDF catalog of all books.
 
-- `GET /authors`: Get a list of all authors. 
+- `GET /authors`: Get a list of all authors.
 - `GET /authors/{author_id}`: Get details of a specific author by ID.
 - `POST /authors`: Create a new author. <span style="color:yellow">*Admin only*</span>
 - `PUT /authors/{author_id}`: Update an existing author by ID. <span style="color:yellow">*Admin only*</span>
 - `DELETE /authors/{author_id}`: Delete an author by ID. <span style="color:yellow">*Admin only*</span>
+
+## Testing
+
+To test the API run the following commands
+
+```bash
+docker exec -it <api container id>  bash
+```
+
+```bash
+pytest tests/
+```

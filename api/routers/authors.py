@@ -50,7 +50,7 @@ def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserM
     author = AuthorModel.get_by_id(author_id)
     if not author:
         raise HTTPException(status_code=404, detail="Author not found")
-    if not author_data:  # a patch request mustn't be empty
+    if not author_data.name and not author_data.book_ids:  # a put request mustn't be empty
         raise HTTPException(
             status_code=400, detail="Please fill in some information about the author")
 

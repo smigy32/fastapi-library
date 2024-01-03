@@ -64,7 +64,7 @@ def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = D
     book = BookModel.get_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
-    if not book_data:  # request mustn't be empty
+    if not any([book_data.title, book_data.description, book_data.author_ids]):  # request mustn't be empty
         raise HTTPException(
             status_code=400, detail="Please fill in some information about the book!")
     title = book_data.title or book.title

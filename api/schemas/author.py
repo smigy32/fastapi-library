@@ -11,6 +11,7 @@ class AuthorCreate(AuthorBase):
 
 class AuthorUpdate(AuthorBase):
     name: str | None = None
+    book_ids: list[int] | None = None
 
 
 class Author(AuthorBase):
