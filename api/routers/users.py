@@ -18,7 +18,15 @@ router = APIRouter(
 @admin_required
 @cache_it("users")
 def get_users(current_user: UserModel = Depends(get_current_user)):
-    # Логіка обробки запиту
+    """
+    Retrieve a list of users.
+
+    Args:
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        List[User]: A list of User objects.
+    """
     users = UserModel.return_all()
     return [user.to_dict() for user in users]
 
@@ -26,6 +34,16 @@ def get_users(current_user: UserModel = Depends(get_current_user)):
 @router.get("/{user_id}", response_model=user.User)
 @admin_required
 def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
+    """
+    Retrieve details of a specific user by ID.
+
+    Args:
+        user_id (int): The ID of the user.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        User: Details of the user.
+    """
     user = UserModel.get_by_id(user_id)
     if user:
         return user
@@ -36,6 +54,16 @@ def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
 @router.post("/", status_code=201)
 @admin_required
 def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(get_current_user)):
+    """
+    Create a new user.
+
+    Args:
+        user_data (user.UserCreate): Data for creating a new user.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        dict: A dictionary containing the ID of the newly created user.
+    """
     new_user = UserModel(name=user_data.name, login=user_data.login,
                          hashed_password=UserModel.generate_hash(user_data.password))
     if user_data.email:
@@ -48,6 +76,17 @@ def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(ge
 @router.put("/{user_id}", response_model=user.User)
 @admin_required
 def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserModel = Depends(get_current_user)):
+    """
+    Update details of an existing user.
+
+    Args:
+        user_id (int): The ID of the user to be updated.
+        user_data (user.UserUpdate): Data for updating the user.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        User: Details of the updated user.
+    """
     user = UserModel.get_by_id(user_id)
 
     if not user:
@@ -70,6 +109,16 @@ def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserMode
 @router.delete("/{user_id}")
 @admin_required
 def delete_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
+    """
+    Delete a user by ID.
+
+    Args:
+        user_id (int): The ID of the user to be deleted.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        dict: A dictionary with a detail message indicating the success or failure of the deletion.
+    """
     status_code = UserModel.delete_by_id(user_id)
     if status_code == 200:
         return {"detail": "User has been deleted"}

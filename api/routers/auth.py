@@ -16,6 +16,18 @@ router = APIRouter(
 
 @router.post("/login", response_model=auth.Token)
 def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    """
+    Logs in a user and returns JWT tokens.
+
+    Args:
+        form_data (Annotated[OAuth2PasswordRequestForm, Depends()]): The user's login credentials.
+
+    Raises:
+        HTTPException: If the login or password is missing, or authentication fails.
+
+    Returns:
+        dict: A dictionary containing access_token and refresh_token.
+    """
     login = form_data.username
     password = form_data.password
     if not login or not password:
@@ -43,7 +55,18 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
 @router.post("/signup", status_code=201)
 async def signup(user_data: user.UserCreate):
+    """
+    Signs up a new user.
 
+    Args:
+        user_data (user.UserCreate): User registration data.
+
+    Raises:
+        HTTPException: If the user already exists.
+
+    Returns:
+        dict: A dictionary indicating successful registration.
+    """
     # gets name, login and password
     name, login = user_data.name, user_data.login
     password = user_data.password

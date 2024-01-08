@@ -15,10 +15,19 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[Book])  # get all books
+@router.get("/", response_model=list[Book])
 @cache_it("books")
 def get_books(title: str | None = None, current_user: UserModel = Depends(get_current_user)):
+    """
+    Retrieve a list of books, optionally filtered by title.
 
+    Args:
+        title (str, optional): Filter books by title. Defaults to None.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        List[Book]: A list of Book objects.
+    """
     # a simple filter by QUERY params
     if title:
         books = BookModel.get_by_title(title)
@@ -28,8 +37,18 @@ def get_books(title: str | None = None, current_user: UserModel = Depends(get_cu
     return [book.to_dict() for book in books]
 
 
-@router.get("/{book_id}", response_model=Book)  # get a book by its id
+@router.get("/{book_id}", response_model=Book)
 def get_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
+    """
+    Retrieve details of a specific book by ID.
+
+    Args:
+        book_id (int): The ID of the book.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        Book: Details of the book.
+    """
     book = BookModel.get_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -40,7 +59,16 @@ def get_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
 @router.post("/", status_code=201, response_model=Book)  # create a new book
 @admin_required
 def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_current_user)):
-    print(book_data)
+    """
+    Create a new book.
+
+    Args:
+        book_data (BookCreate): Data for creating a new book.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        Book: Details of the newly created book.
+    """
     invalid_body_exception = HTTPException(
         status_code=400, detail="Please fill in all information about the book")
 
@@ -61,6 +89,17 @@ def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_cur
 @router.put("/{book_id}", response_model=Book)
 @admin_required
 def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = Depends(get_current_user)):
+    """
+    Update details of an existing book.
+
+    Args:
+        book_id (int): The ID of the book to be updated.
+        book_data (BookUpdate): Data for updating the book.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        Book: Details of the updated book.
+    """
     book = BookModel.get_by_id(book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -84,6 +123,16 @@ def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = D
 @router.delete("/{book_id}")
 @admin_required
 def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
+    """
+    Delete a book by ID.
+
+    Args:
+        book_id (int): The ID of the book to be deleted.
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        dict: A dictionary with a detail message indicating the success or failure of the deletion.
+    """
     status_code = BookModel.delete_by_id(book_id)
     if status_code == 200:
         return {"detail": "Book has been deleted"}
@@ -94,6 +143,15 @@ def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user
 @router.get("/pdf/")
 @cache_it("books")
 async def generate_catalog(current_user: UserModel = Depends(get_current_user)):
+    """
+    Generate a catalog of books in PDF format and send it via email.
+
+    Args:
+        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
+
+    Returns:
+        List[Book]: A list of Book objects in the catalog.
+    """
     books = [book.to_dict() for book in BookModel.return_all()]
     generate_pdf.delay(books, "books")
     await send_catalog(email_to=current_user.email, body={"name": current_user.name})
