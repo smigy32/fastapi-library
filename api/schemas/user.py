@@ -1,26 +1,26 @@
 from pydantic import BaseModel
 
 
-# Спільні поля для читання та створення
+# Common fields for reading and creating
 class UserBase(BaseModel):
     name: str
     login: str
     email: str | None = None
 
 
-# Поля, потрібні лише для створення
+# Fields required only for creation
 class UserCreate(UserBase):
     password: str
 
 
-# Поля, потрібні лише для апдейту
+# Fields required only for the update
 class UserUpdate(UserBase):
     name: str | None = None
     login: str | None = None
     password: str | None = None
 
 
-# Поля для читання (те, що повертатиметься юзеру)
+# Readable fields (what will be returned to the user)
 class User(UserBase):
     id: int
     is_active: bool

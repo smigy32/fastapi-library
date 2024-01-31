@@ -54,6 +54,8 @@ The following endpoints are available in the API:
 - `POST /signup`: User registration
 - `POST /login`: User Login
 
+> **NOTE**: once you're logged in you'll get 2 tokens. In order to be able to access the routes bellow, pass the access_token as a value to the **Authentication** header with your request
+
 - `GET /users`: Get a list of all users. <span style="color:yellow">*Admin only*</span>
 - `GET /users/{user_id}`: Get details of a specific user by ID. <span style="color:yellow">*Admin only*</span>
 - `POST /users`: Create a new user. <span style="color:yellow">*Admin only*</span>
@@ -72,6 +74,20 @@ The following endpoints are available in the API:
 - `POST /authors`: Create a new author. <span style="color:yellow">*Admin only*</span>
 - `PUT /authors/{author_id}`: Update an existing author by ID. <span style="color:yellow">*Admin only*</span>
 - `DELETE /authors/{author_id}`: Delete an author by ID. <span style="color:yellow">*Admin only*</span>
+
+## Setting up work with mail
+
+To use email sending (welcome email and email with books catalog) you need to configure the SMTP server.
+You can use any mail provider that supports the feature e.g. GMAIL, Outlook.  
+To configure the mail settings just set the following env variables to your **.env** file:
+
+- MAIL_USERNAME - your username on an email service
+- MAIL_PASSWORD - your password (some services, like GMAIL, may generate a separate password specially for your app, so look it up)
+- MAIL_FROM - email address that is used as a sender
+- MAIL_PORT - port that your SMTP uses for connection (may vary depending on what encryption scheme you use)
+- MAIL_SERVER - outgoing server address e.g. smtp.gmail.com
+
+
 
 ## Testing
 
