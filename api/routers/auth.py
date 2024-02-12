@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from api.models import UserModel
 from api.schemas import auth, user
 from api.security import create_access_token, create_refresh_token
-from api.email_settings import send_welcome_email
+from api.tasks.tasks import send_welcome_email
 
 
 router = APIRouter(
@@ -54,7 +54,7 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
 
 @router.post("/signup", status_code=201)
-async def signup(user_data: user.UserCreate):
+def signup(user_data: user.UserCreate):
     """
     Signs up a new user.
 
@@ -85,7 +85,7 @@ async def signup(user_data: user.UserCreate):
         user.save_to_db()
 
         if email:
-            await send_welcome_email(email_to=email, body={"name": name})
+            send_welcome_email.delay(email_to=email, body={"name": name})
 
         return {"detail": "Successfully registered"}
     else:

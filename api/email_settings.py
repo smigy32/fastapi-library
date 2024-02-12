@@ -28,19 +28,6 @@ conf = ConnectionConfig(
 )
 
 
-async def send_welcome_email(email_to: str, body: dict):
-    # create email
-    message = MessageSchema(
-        subject="Welcome!",
-        recipients=[email_to],
-        template_body=body,
-        subtype=MessageType.html,
-    )
-
-    fm = FastMail(conf)
-    await fm.send_message(message, template_name="welcome.html")
-
-
 async def send_catalog(email_to: str, body: dict):
     root = os.getcwd()
     catalog_path = os.path.join(root, "attachments/catalog.pdf")
