@@ -5,7 +5,7 @@ from api.models import UserModel
 from api.schemas import user
 from api.security import admin_required
 from api.email_settings import send_welcome_email
-from api.redis import cache_it
+from api.redis import cache_it, drop_cache
 
 
 router = APIRouter(
@@ -53,6 +53,7 @@ def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
 
 @router.post("/", status_code=201)
 @admin_required
+@drop_cache("users")
 def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(get_current_user)):
     """
     Create a new user.
@@ -75,6 +76,7 @@ def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(ge
 
 @router.put("/{user_id}", response_model=user.User)
 @admin_required
+@drop_cache("users")
 def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserModel = Depends(get_current_user)):
     """
     Update details of an existing user.
@@ -108,6 +110,7 @@ def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserMode
 
 @router.delete("/{user_id}")
 @admin_required
+@drop_cache("users")
 def delete_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
     """
     Delete a user by ID.

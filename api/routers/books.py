@@ -4,7 +4,7 @@ from api.dependencies import get_current_user
 from api.models import BookModel, AuthorModel, UserModel
 from api.schemas.book import Book, BookCreate, BookUpdate
 from api.security import admin_required
-from api.redis import cache_it
+from api.redis import cache_it, drop_cache
 from api.tasks.tasks import generate_pdf
 from api.email_settings import send_catalog
 
@@ -58,6 +58,7 @@ def get_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
 
 @router.post("/", status_code=201, response_model=Book)  # create a new book
 @admin_required
+@drop_cache("books")
 def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_current_user)):
     """
     Create a new book.
@@ -88,6 +89,7 @@ def create_book(book_data: BookCreate, current_user: UserModel = Depends(get_cur
 
 @router.put("/{book_id}", response_model=Book)
 @admin_required
+@drop_cache("books")
 def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = Depends(get_current_user)):
     """
     Update details of an existing book.
@@ -122,6 +124,7 @@ def update_book(book_id: int, book_data: BookUpdate, current_user: UserModel = D
 
 @router.delete("/{book_id}")
 @admin_required
+@drop_cache("books")
 def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user)):
     """
     Delete a book by ID.
