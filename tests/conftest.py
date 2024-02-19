@@ -1,21 +1,25 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy_utils import database_exists, create_database, drop_database
 
 from api.models.user import UserModel
 from api.database.database import session
 from api import fastapi_config
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client():
     SQLALCHEMY_DATABASE_URI = fastapi_config.TEST_SQLALCHEMY_DATABASE_URI
     # create connection to the test database
     engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)
+    if not database_exists(engine.url):
+        create_database(engine.url)
     session.bind = engine  # change the engine the session uses
     from api.main import create_app
     app = create_app(engine)
-    return TestClient(app)
+    yield TestClient(app)
+    drop_database(engine.url)
 
 
 @pytest.fixture
