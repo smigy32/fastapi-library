@@ -49,9 +49,7 @@ def test_update_book(client, authentication_headers, id, title, expected_status_
     Test for updating a book
     """
     response = client.put(f"/books/{id}", headers=authentication_headers(is_admin=True),
-                          json={
-        "title": title,
-    })
+                          json={"title": title})
     assert response.status_code == expected_status_code
 
 

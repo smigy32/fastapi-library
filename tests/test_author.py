@@ -17,10 +17,7 @@ def test_create_author(client, authentication_headers, name: str, expected_statu
     """
     Test for creating an author
     """
-    response = client.post("/authors", headers=authentication_headers(is_admin=True),
-                           json={
-                               "name": name,
-    })
+    response = client.post("/authors", headers=authentication_headers(is_admin=True), json={"name": name})
     assert response.status_code == expected_status_code
 
 
@@ -44,10 +41,7 @@ def test_update_author(client, authentication_headers, id, name, expected_status
     """
     Test for updating an author
     """
-    response = client.put(f"/authors/{id}", headers=authentication_headers(is_admin=True),
-                          json={
-        "name": name,
-    })
+    response = client.put(f"/authors/{id}", headers=authentication_headers(is_admin=True), json={"name": name})
     assert response.status_code == expected_status_code
 
 

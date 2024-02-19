@@ -95,8 +95,7 @@ def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserMode
         raise HTTPException(status_code=404, detail="User not found")
 
     if not any([user_data.name, user_data.login, user_data.password, user_data.email]):
-        raise HTTPException(
-            status_code=400, detail="Please provide valid information about the user")
+        raise HTTPException(status_code=400, detail="Please provide valid information about the user")
 
     user.name = user_data.name or user.name
     user.login = user_data.login or user.login

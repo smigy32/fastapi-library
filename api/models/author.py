@@ -11,8 +11,7 @@ class AuthorModel(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
-    books = relationship(
-        "BookModel", secondary=book_author_association, back_populates="authors")
+    books = relationship("BookModel", secondary=book_author_association, back_populates="authors")
     is_active = Column(Boolean, default=True)
 
     @classmethod
@@ -80,8 +79,7 @@ class AuthorModel(Base):
         Returns:
             int: The status code indicating the success of the operation (200 if success, 404 if the author not found).
         """
-        author = session.query(cls).filter_by(
-            id=author_id, is_active=True).first()
+        author = session.query(cls).filter_by(id=author_id, is_active=True).first()
         if author:
             author.is_active = False
             return 200

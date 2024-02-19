@@ -32,8 +32,7 @@ def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     password = form_data.password
     if not login or not password:
         # returns 400 if any login or / and password is missing
-        raise HTTPException(
-            status_code=400, detail="You have to provide both login and password")
+        raise HTTPException(status_code=400, detail="You have to provide both login and password")
 
     user = UserModel.get_by_login(login)
 

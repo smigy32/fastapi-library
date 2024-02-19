@@ -94,8 +94,7 @@ def update_author(author_id: int, author_data: AuthorUpdate, current_user: UserM
     if not author:
         raise HTTPException(status_code=404, detail="Author not found")
     if not author_data.name and not author_data.book_ids:  # a put request mustn't be empty
-        raise HTTPException(
-            status_code=400, detail="Please fill in some information about the author")
+        raise HTTPException(status_code=400, detail="Please fill in some information about the author")
 
     name = author_data.name or author.name
     book_ids = author_data.book_ids

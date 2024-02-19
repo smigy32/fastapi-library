@@ -19,8 +19,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, fastapi_config.JWT_SECRET_KEY, algorithms=[
-                             fastapi_config.ALGORITHM])
+        payload = jwt.decode(token, fastapi_config.JWT_SECRET_KEY, algorithms=[fastapi_config.ALGORITHM])
         login: str = payload.get("sub")
         if login is None:
             raise credentials_exception
