@@ -34,7 +34,7 @@ docker-compose up
 6. Enter the Docker container:
 
 ```bash
-docker exec -it <api container id>  bash
+docker exec -it api bash
 ```
 
 7. Inside the container, run the database migrations:
@@ -54,7 +54,8 @@ The following endpoints are available in the API:
 - `POST /signup`: User registration
 - `POST /login`: User Login
 
-> **NOTE**: once you're logged in you'll get 2 tokens. In order to be able to access the routes bellow, pass the access_token as a value to the **Authentication** header with your request
+> **NOTE**: once you're logged in you'll get 2 tokens. In order to be able to access the routes bellow, pass the access_token as a value to the **Authentication** header with your request:
+**Authentication: Bearer < token >**
 
 - `GET /users`: Get a list of all users. <span style="color:yellow">*Admin only*</span>
 - `GET /users/{user_id}`: Get details of a specific user by ID. <span style="color:yellow">*Admin only*</span>
@@ -75,6 +76,26 @@ The following endpoints are available in the API:
 - `PUT /authors/{author_id}`: Update an existing author by ID. <span style="color:yellow">*Admin only*</span>
 - `DELETE /authors/{author_id}`: Delete an author by ID. <span style="color:yellow">*Admin only*</span>
 
+To become an **admin** you should complete the following steps:
+
+1. Enter the db container
+
+   ```bash
+   docker exec -it db bash
+   ```
+
+2. Connect to your main database
+
+   ```bash
+   psql -U <db user> <db name>
+   ```
+
+3. Execute the command, using the login of a user you want to make an admin
+
+   ```bash
+   UPDATE users SET is_admin = True WHERE login = '<login>';
+   ```
+
 ## Setting up work with mail
 
 To use email sending (welcome email and email with books catalog) you need to configure the SMTP server.
@@ -87,14 +108,12 @@ To configure the mail settings just set the following env variables to your **.e
 - MAIL_PORT - port that your SMTP uses for connection (may vary depending on what encryption scheme you use)
 - MAIL_SERVER - outgoing server address e.g. smtp.gmail.com
 
-
-
 ## Testing
 
 To test the API run the following commands
 
 ```bash
-docker exec -it <api container id>  bash
+docker exec -it api bash
 ```
 
 ```bash
