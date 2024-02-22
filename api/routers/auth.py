@@ -61,33 +61,47 @@ def signup(user_data: user.UserCreate):
         user_data (user.UserCreate): User registration data.
 
     Raises:
-        HTTPException: If the user already exists.
+        HTTPException: If the user already exists or if there are errors in sending mail or accessing the database.
 
     Returns:
         dict: A dictionary indicating successful registration.
     """
-    # gets name, login and password
-    name, login = user_data.name, user_data.login
-    password = user_data.password
-    email = user_data.email
-    # checking for existing user
-    user = UserModel.get_by_login(login)
-    if not user:
+    try:
+        # gets name, login and password
+        name, login = user_data.name, user_data.login
+        password = user_data.password
+        email = user_data.email
+        # checking for existing user
+        existing_user = UserModel.get_by_login(login)
+        if existing_user:
+            # returns 409 if user already exists
+            raise HTTPException(
+                status_code=409, detail="User already exists. Please Log in")
+
         # database ORM object
-        user = UserModel(
+        new_user = UserModel(
             name=name,
             login=login,
             hashed_password=UserModel.generate_hash(password),
             email=email,
         )
         # insert user
-        user.save_to_db()
+        new_user.save_to_db()
 
         if email:
-            send_welcome_email.delay(email_to=email, body={"name": name})
+            try:
+                send_welcome_email.delay(email_to=email, body={"name": name})
+            except Exception as e:
+                # Handling errors in sending mail
+                UserModel.delete_by_id(new_user.id)  # Rolling back the user creation
+                raise HTTPException(
+                    status_code=500, detail="Failed to send welcome email. User registration rolled back."
+                ) from e
 
         return {"detail": "Successfully registered"}
-    else:
-        # returns 409 if user already exists
+
+    except Exception as e:
+        # Handling errors related to database access
         raise HTTPException(
-            status_code=409, detail="User already exists. Please Log in")
+            status_code=500, detail="Failed to create user. Database access error."
+        ) from e

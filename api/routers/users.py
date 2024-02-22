@@ -65,13 +65,32 @@ def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(ge
     Returns:
         dict: A dictionary containing the ID of the newly created user.
     """
-    new_user = UserModel(name=user_data.name, login=user_data.login,
-                         hashed_password=UserModel.generate_hash(user_data.password))
-    if user_data.email:
-        new_user.email = user_data.email
-        send_welcome_email.delay(email_to=user_data.email, body={"name": user_data.name})
-    new_user.save_to_db()
-    return {"id": new_user.id}
+    try:
+        new_user = UserModel(
+            name=user_data.name,
+            login=user_data.login,
+            hashed_password=UserModel.generate_hash(user_data.password)
+        )
+
+        if user_data.email:
+            new_user.email = user_data.email
+            try:
+                send_welcome_email.delay(email_to=user_data.email, body={"name": user_data.name})
+            except Exception as e:
+                # Handling errors in sending mail
+                UserModel.delete_by_id(new_user.id)  # Rolling back the user creation
+                raise HTTPException(
+                    status_code=500, detail="Failed to send welcome email. User creation rolled back."
+                ) from e
+
+        new_user.save_to_db()
+        return {"id": new_user.id}
+
+    except Exception as e:
+        # Handling errors related to database access
+        raise HTTPException(
+            status_code=500, detail="Failed to create user. Database access error."
+        ) from e
 
 
 @router.put("/{user_id}", response_model=user.User)
