@@ -1,11 +1,18 @@
 from fastapi import FastAPI
+from strawberry.fastapi import GraphQLRouter
 import uvicorn
 
 from api.database.database import Base, engine
+from api.graphql import schema
 
 
 def setup_database(db_engine):
     Base.metadata.create_all(db_engine)
+
+
+def setup_graphql(app: FastAPI):
+    graphql_app = GraphQLRouter(schema)
+    app.include_router(graphql_app, prefix="/graphql")
 
 
 def create_app(db_engine):
@@ -16,6 +23,7 @@ def create_app(db_engine):
     app.include_router(auth.router)
     app.include_router(books.router)
     app.include_router(authors.router)
+    setup_graphql(app)
     return app
 
 
