@@ -24,3 +24,9 @@ class Book:
     title: str
     description: str
     authors: List[Author]
+
+
+@strawberry.type
+class Token:
+    access_token: str
+    refresh_token: str
