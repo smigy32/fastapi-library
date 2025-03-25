@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from api.dependencies import get_current_user
 from api.models import BookModel, AuthorModel, UserModel
-from api.schemas.book import Book, BookCreate, BookUpdate
+from api.rest.schemas.book import Book, BookCreate, BookUpdate
 from api.security import admin_required
 from api.redis import cache_it, drop_cache
 from api.tasks.tasks import generate_pdf

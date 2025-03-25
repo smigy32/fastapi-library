@@ -1,1 +1,1 @@
-from .resolvers import schema
+from .gather_resolvers import schema

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 
 from api.dependencies import get_current_user
 from api.models import UserModel
-from api.schemas import user
+from api.rest.schemas import user
 from api.security import admin_required
 from api.tasks.tasks import send_welcome_email
 from api.redis import cache_it, drop_cache

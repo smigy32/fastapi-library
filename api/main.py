@@ -18,7 +18,7 @@ def setup_graphql(app: FastAPI):
 def create_app(db_engine):
     app = FastAPI()
     setup_database(db_engine)
-    from api.routers import users, auth, books, authors
+    from api.rest.routers import users, auth, books, authors
     app.include_router(users.router)
     app.include_router(auth.router)
     app.include_router(books.router)

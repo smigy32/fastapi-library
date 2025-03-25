@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
 from api.models import UserModel
-from api.schemas import auth, user
+from api.rest.schemas import auth, user
 from api.security import create_access_token, create_refresh_token
 from api.tasks.tasks import send_welcome_email
 
