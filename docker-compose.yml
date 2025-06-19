@@ -25,6 +25,9 @@ services:
     build: .
     depends_on:
       - db
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     ports:
       - 8000:8000
     volumes:
@@ -40,6 +43,9 @@ services:
     depends_on:
       - redis
       - library-api
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - library-network
   flower:
@@ -52,6 +58,9 @@ services:
       - library-api
       - redis
       - celery_worker
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     networks:
       - library-network
     

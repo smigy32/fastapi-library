@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 
 from api.email_settings import conf
 
-celery_app = Celery("tasks", broker="redis://redis:6379")
+celery_app = Celery("tasks")
 
 
 @celery_app.task
