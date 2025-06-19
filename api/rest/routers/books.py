@@ -144,7 +144,6 @@ def delete_book(book_id: int, current_user: UserModel = Depends(get_current_user
 
 
 @router.get("/pdf/")
-@cache_it("books")
 async def generate_catalog(current_user: UserModel = Depends(get_current_user)):
     """
     Generate a catalog of books in PDF format and send it via email.

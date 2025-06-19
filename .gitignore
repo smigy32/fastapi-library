@@ -606,3 +606,6 @@ FodyWeavers.xsd
 
 # DB Volume path
 /db-data
+
+# Attachments folder
+/attachments
