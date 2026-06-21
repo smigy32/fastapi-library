@@ -28,8 +28,8 @@ def create_refresh_token(subject: str, user: UserModel) -> str:
 
 def admin_required(func):
     @wraps(func)
-    def wrapper(*args, current_user: UserModel = Depends(get_current_user), **kwargs):
+    async def wrapper(*args, current_user: UserModel = Depends(get_current_user), **kwargs):
         if not current_user.is_admin:
             raise HTTPException(status_code=403, detail="Access forbidden")
-        return func(*args, **kwargs)
+        return await func(*args, **kwargs)
     return wrapper

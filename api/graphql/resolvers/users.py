@@ -1,5 +1,3 @@
-
-
 from typing import List
 import strawberry
 
@@ -10,6 +8,7 @@ from api.models.user import UserModel
 @strawberry.type
 class UserQuery:
     @strawberry.field
-    def users(self) -> List[User]:
-        users = UserModel.return_all()
+    async def users(self, info: strawberry.types.Info) -> List[User]:
+        session = info.context["session"]
+        users = await UserModel.return_all(session)
         return [User(**user.to_dict()) for user in users]

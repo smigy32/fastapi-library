@@ -1,8 +1,8 @@
-from sqlalchemy import Table, Column, String, Integer, ForeignKey, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Table, Column, String, Integer, ForeignKey, Boolean, select
+from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from api.database.database import Base, session
+from api.database.database import Base
 
 
 book_author_association = Table(
@@ -24,93 +24,50 @@ class BookModel(Base):
     description = Column(String)
 
     @classmethod
-    def return_all(cls):
-        """
-        Return a list of all active books.
-
-        Returns:
-            List[Book]: List of active books.
-        """
-        books = session.query(cls).filter_by(is_active=True).all()
-        return books
+    async def return_all(cls, session: AsyncSession):
+        result = await session.execute(
+            select(cls).where(cls.is_active == True).options(selectinload(cls.authors))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def get_by_id(cls, book_id: int):
-        """
-        Get a book by ID.
-
-        Args:
-            book_id (int): The ID of the book to retrieve.
-
-        Returns:
-            Book: The book with the specified ID.
-        """
-        book = session.query(cls).filter_by(id=book_id, is_active=True).first()
-        return book
+    async def get_by_id(cls, session: AsyncSession, book_id: int):
+        result = await session.execute(
+            select(cls).where(cls.id == book_id, cls.is_active == True)
+            .options(selectinload(cls.authors))
+        )
+        return result.scalar_one_or_none()
 
     @classmethod
-    def get_by_ids(cls, book_ids: list[int]):
-        """
-        Get books by a list of IDs.
-
-        Args:
-            book_ids (List[int]): The list of book IDs.
-
-        Returns:
-            List[Book]: List of books matching the provided IDs.
-        """
-        books = session.query(cls).filter(cls.id.in_(book_ids)).all()
-        return books
+    async def get_by_ids(cls, session: AsyncSession, book_ids: list[int]):
+        result = await session.execute(
+            select(cls).where(cls.id.in_(book_ids)).options(selectinload(cls.authors))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def get_by_title(cls, title: str):
-        """
-        Get books by title.
-
-        Args:
-            title (str): The title of the books to retrieve.
-
-        Returns:
-            List[Book]: List of books with the specified title.
-        """
-        books = session.query(cls).filter(cls.title.like(
-            f"%{title.capitalize()}%"), cls.is_active == True).all()
-        return books
+    async def get_by_title(cls, session: AsyncSession, title: str):
+        result = await session.execute(
+            select(cls).where(cls.title.like(f"%{title.capitalize()}%"), cls.is_active == True)
+            .options(selectinload(cls.authors))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def delete_by_id(cls, book_id: int):
-        """
-        Delete a book by ID.
-
-        Args:
-            book_id (int): The ID of the book to delete.
-
-        Returns:
-            int: The status code indicating the success of the operation (200 if success, 404 if the book not found).
-        """
-        book = session.query(cls).filter_by(
-            id=book_id, is_active=True).first()
+    async def delete_by_id(cls, session: AsyncSession, book_id: int):
+        book = await cls.get_by_id(session, book_id)
         if book:
             book.is_active = False
-            book.save_to_db()
+            await book.save_to_db(session)
             return 200
-        else:
-            return 404
+        return 404
 
-    def save_to_db(self):
-        """
-        Save changes to the database.
-        """
+    async def save_to_db(self, session: AsyncSession):
         session.add(self)
-        session.commit()
+        await session.commit()
+        await session.refresh(self)
 
     def to_dict(self):
-        """
-        Convert the book object to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the book object.
-        """
         return {
             "id": self.id,
             "title": self.title,

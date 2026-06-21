@@ -1,17 +1,14 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 
 from api import fastapi_config
 
-# Create a connection to the database
-db_url = fastapi_config.SQLALCHEMY_DATABASE_URI
-engine = create_engine(db_url, echo=True)
-
-# Create a session
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Creating a base class of models
+db_url = fastapi_config.SQLALCHEMY_DATABASE_URI.replace("postgresql://", "postgresql+asyncpg://")
+engine = create_async_engine(db_url, echo=True)
+AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 Base = declarative_base()
+
+
+async def get_session() -> AsyncSession:
+    async with AsyncSessionLocal() as session:
+        yield session

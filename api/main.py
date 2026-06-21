@@ -1,33 +1,41 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Depends
 from strawberry.fastapi import GraphQLRouter
+from sqlalchemy.ext.asyncio import AsyncSession
 import uvicorn
 
-from api.database.database import Base, engine
+from api.database.database import Base, engine, get_session
 from api.graphql import schema
 
 
-def setup_database(db_engine):
-    Base.metadata.create_all(db_engine)
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
 
 
-def setup_graphql(app: FastAPI):
-    graphql_app = GraphQLRouter(schema)
-    app.include_router(graphql_app, prefix="/graphql")
+async def get_graphql_context(session: AsyncSession = Depends(get_session)):
+    return {"session": session}
 
 
-def create_app(db_engine):
-    app = FastAPI()
-    setup_database(db_engine)
+def create_app():
+    app = FastAPI(lifespan=lifespan)
+
     from api.rest.routers import users, auth, books, authors
     app.include_router(users.router)
     app.include_router(auth.router)
     app.include_router(books.router)
     app.include_router(authors.router)
-    setup_graphql(app)
+
+    graphql_app = GraphQLRouter(schema, context_getter=get_graphql_context)
+    app.include_router(graphql_app, prefix="/graphql")
+
     return app
 
 
-app = create_app(engine)
+app = create_app()
 
 
 @app.get("/")

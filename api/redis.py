@@ -1,25 +1,23 @@
 from functools import wraps
-
 import json
-import redis
+
+from redis import asyncio as aioredis
 
 
-redis_connection = redis.Redis(host="redis", port=6379, db=1)
+redis_connection = aioredis.Redis(host="redis", port=6379, db=1)
 
 
 def cache_it(key_name: str):
     def Inner(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            cache = redis_connection.get(key_name)
+        async def wrapper(*args, **kwargs):
+            cache = await redis_connection.get(key_name)
             if cache:
                 return json.loads(cache)
-            else:
-                result = func(*args, **kwargs)
-                string_result = json.dumps(result)
-                redis_connection.set(key_name, string_result)
-                redis_connection.expire(key_name, 300)
-                return result
+            result = await func(*args, **kwargs)
+            await redis_connection.set(key_name, json.dumps(result))
+            await redis_connection.expire(key_name, 300)
+            return result
         return wrapper
     return Inner
 
@@ -27,11 +25,10 @@ def cache_it(key_name: str):
 def drop_cache(key_name: str):
     def Inner(func):
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            cache = redis_connection.get(key_name)
+        async def wrapper(*args, **kwargs):
+            cache = await redis_connection.get(key_name)
             if cache:
-                redis_connection.delete(key_name)
-            result = func(*args, **kwargs)
-            return result
+                await redis_connection.delete(key_name)
+            return await func(*args, **kwargs)
         return wrapper
     return Inner

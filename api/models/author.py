@@ -1,8 +1,8 @@
-from sqlalchemy import Column, String, Integer, Boolean
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, Boolean, select
+from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-from api.database.database import Base, session
+from api.database.database import Base
 from api.models.book import book_author_association
 
 
@@ -15,91 +15,50 @@ class AuthorModel(Base):
     is_active = Column(Boolean, default=True)
 
     @classmethod
-    def return_all(cls):
-        """
-        Return a list of all active authors.
-
-        Returns:
-            List[Author]: List of active authors.
-        """
-        authors = session.query(cls).filter_by(is_active=True).all()
-        return authors
+    async def return_all(cls, session: AsyncSession):
+        result = await session.execute(
+            select(cls).where(cls.is_active == True).options(selectinload(cls.books))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def get_by_id(cls, author_id: int):
-        """
-        Get an author by ID.
-
-        Args:
-            author_id (int): The ID of the author to retrieve.
-
-        Returns:
-            Author: The author with the specified ID.
-        """
-        author = session.query(cls).filter_by(
-            id=author_id, is_active=True).first()
-        return author
+    async def get_by_id(cls, session: AsyncSession, author_id: int):
+        result = await session.execute(
+            select(cls).where(cls.id == author_id, cls.is_active == True)
+            .options(selectinload(cls.books))
+        )
+        return result.scalar_one_or_none()
 
     @classmethod
-    def get_by_ids(cls, authors_ids: list[int]):
-        """
-        Get authors by a list of IDs.
-
-        Args:
-            authors_ids (List[int]): The list of author IDs.
-
-        Returns:
-            List[Author]: List of authors matching the provided IDs.
-        """
-        authors = session.query(cls).filter(cls.id.in_(authors_ids)).all()
-        return authors
+    async def get_by_ids(cls, session: AsyncSession, authors_ids: list[int]):
+        result = await session.execute(
+            select(cls).where(cls.id.in_(authors_ids)).options(selectinload(cls.books))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def get_by_name(cls, name: str):
-        """
-        Get authors by name.
-
-        Args:
-            name (str): The name of the authors to retrieve.
-
-        Returns:
-            List[Author]: List of authors with the specified name.
-        """
-        authors = session.query(cls).filter_by(name=name, is_active=True).all()
-        return authors
+    async def get_by_name(cls, session: AsyncSession, name: str):
+        result = await session.execute(
+            select(cls).where(cls.name == name, cls.is_active == True)
+            .options(selectinload(cls.books))
+        )
+        return result.scalars().all()
 
     @classmethod
-    def delete_by_id(cls, author_id: int):
-        """
-        Delete an author by ID.
-
-        Args:
-            author_id (int): The ID of the author to delete.
-
-        Returns:
-            int: The status code indicating the success of the operation (200 if success, 404 if the author not found).
-        """
-        author = session.query(cls).filter_by(id=author_id, is_active=True).first()
+    async def delete_by_id(cls, session: AsyncSession, author_id: int):
+        author = await cls.get_by_id(session, author_id)
         if author:
             author.is_active = False
+            await author.save_to_db(session)
             return 200
-        else:
-            return 404
+        return 404
 
-    def save_to_db(self):
-        """
-        Save changes to the database.
-        """
+    async def save_to_db(self, session: AsyncSession):
         session.add(self)
-        session.commit()
+        await session.commit()
+        await session.refresh(self)
 
     def to_dict(self):
-        """
-        Convert the author object to a dictionary.
-
-        Returns:
-            dict: Dictionary representation of the author object.
-        """
         return {
             "id": self.id,
             "name": self.name,

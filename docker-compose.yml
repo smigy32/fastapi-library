@@ -25,6 +25,7 @@ services:
     build: .
     depends_on:
       - db
+      - redis
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -51,13 +52,14 @@ services:
   flower:
     container_name: flower
     build: .
-    command: celery -A api.tasks.tasks flower --port=5555
+    command: celery -A api.tasks.tasks flower --port=5555 --broker=redis://redis:6379/0
     ports:
       - 5556:5555
     depends_on:
-      - library-api
       - redis
       - celery_worker
+    volumes:
+      - .:/fastapi-library
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0

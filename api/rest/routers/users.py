@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.database.database import get_session
 from api.dependencies import get_current_user
 from api.models import UserModel
 from api.rest.schemas import user
@@ -17,77 +19,57 @@ router = APIRouter(
 @router.get("/", response_model=list[user.User])
 @admin_required
 @cache_it("users")
-def get_users(current_user: UserModel = Depends(get_current_user)):
-    """
-    Retrieve a list of users.
-
-    Args:
-        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
-
-    Returns:
-        List[User]: A list of User objects.
-    """
-    users = UserModel.return_all()
-    return [user.to_dict() for user in users]
+async def get_users(
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    users = await UserModel.return_all(session)
+    return [u.to_dict() for u in users]
 
 
 @router.get("/{user_id}", response_model=user.User)
 @admin_required
-def get_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
-    """
-    Retrieve details of a specific user by ID.
-
-    Args:
-        user_id (int): The ID of the user.
-        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
-
-    Returns:
-        User: Details of the user.
-    """
-    user = UserModel.get_by_id(user_id)
-    if user:
-        return user
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+async def get_user(
+    user_id: int,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    db_user = await UserModel.get_by_id(session, user_id)
+    if db_user:
+        return db_user.to_dict()
+    raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/", status_code=201)
 @admin_required
 @drop_cache("users")
-def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(get_current_user)):
-    """
-    Create a new user.
-
-    Args:
-        user_data (user.UserCreate): Data for creating a new user.
-        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
-
-    Returns:
-        dict: A dictionary containing the ID of the newly created user.
-    """
+async def create_user(
+    user_data: user.UserCreate,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
     try:
         new_user = UserModel(
             name=user_data.name,
             login=user_data.login,
-            hashed_password=UserModel.generate_hash(user_data.password)
+            hashed_password=UserModel.generate_hash(user_data.password),
+            email=user_data.email,
         )
 
         if user_data.email:
-            new_user.email = user_data.email
             try:
                 send_welcome_email.delay(email_to=user_data.email, body={"name": user_data.name})
             except Exception as e:
-                # Handling errors in sending mail
-                UserModel.delete_by_id(new_user.id)  # Rolling back the user creation
                 raise HTTPException(
                     status_code=500, detail="Failed to send welcome email. User creation rolled back."
                 ) from e
 
-        new_user.save_to_db()
+        await new_user.save_to_db(session)
         return {"id": new_user.id}
 
+    except HTTPException:
+        raise
     except Exception as e:
-        # Handling errors related to database access
         raise HTTPException(
             status_code=500, detail="Failed to create user. Database access error."
         ) from e
@@ -96,51 +78,38 @@ def create_user(user_data: user.UserCreate, current_user: UserModel = Depends(ge
 @router.put("/{user_id}", response_model=user.User)
 @admin_required
 @drop_cache("users")
-def update_user(user_id: int, user_data: user.UserUpdate, current_user: UserModel = Depends(get_current_user)):
-    """
-    Update details of an existing user.
+async def update_user(
+    user_id: int,
+    user_data: user.UserUpdate,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    db_user = await UserModel.get_by_id(session, user_id)
 
-    Args:
-        user_id (int): The ID of the user to be updated.
-        user_data (user.UserUpdate): Data for updating the user.
-        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
-
-    Returns:
-        User: Details of the updated user.
-    """
-    user = UserModel.get_by_id(user_id)
-
-    if not user:
+    if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     if not any([user_data.name, user_data.login, user_data.password, user_data.email]):
         raise HTTPException(status_code=400, detail="Please provide valid information about the user")
 
-    user.name = user_data.name or user.name
-    user.login = user_data.login or user.login
-    user.email = user_data.email or user.email
-    user.hashed_password = UserModel.generate_hash(
-        user_data.password) if user_data.password else user.hashed_password
-    user.save_to_db()
+    db_user.name = user_data.name or db_user.name
+    db_user.login = user_data.login or db_user.login
+    db_user.email = user_data.email or db_user.email
+    db_user.hashed_password = UserModel.generate_hash(user_data.password) if user_data.password else db_user.hashed_password
+    await db_user.save_to_db(session)
 
-    return user
+    return db_user.to_dict()
 
 
 @router.delete("/{user_id}")
 @admin_required
 @drop_cache("users")
-def delete_user(user_id: int, current_user: UserModel = Depends(get_current_user)):
-    """
-    Delete a user by ID.
-
-    Args:
-        user_id (int): The ID of the user to be deleted.
-        current_user (UserModel, optional): Current authenticated user. Defaults to Depends(get_current_user).
-
-    Returns:
-        dict: A dictionary with a detail message indicating the success or failure of the deletion.
-    """
-    status_code = UserModel.delete_by_id(user_id)
+async def delete_user(
+    user_id: int,
+    current_user: UserModel = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    status_code = await UserModel.delete_by_id(session, user_id)
     if status_code == 200:
         return {"detail": "User has been deleted"}
     elif status_code == 404:

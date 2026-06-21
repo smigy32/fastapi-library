@@ -8,8 +8,9 @@ from api.models.book import BookModel
 @strawberry.type
 class BookQuery:
     @strawberry.field
-    def books(self) -> List[Book]:
-        books = BookModel.return_all()
+    async def books(self, info: strawberry.types.Info) -> List[Book]:
+        session = info.context["session"]
+        books = await BookModel.return_all(session)
         return [
             Book(
                 id=book.id,
