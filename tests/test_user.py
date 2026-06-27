@@ -1,57 +1,55 @@
 import pytest
 
 
-def test_get_users(client, authentication_headers):
-    """
-    Test for getting all users
-    """
-    response = client.get("/users", headers=authentication_headers(is_admin=True))
+def test_get_users(client, admin_headers):
+    response = client.get("/users", headers=admin_headers)
     assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 
-def test_create_user(client, authentication_headers):
-    """
-    Test for creating a user
-    """
-    response = client.post("/users", headers=authentication_headers(is_admin=True),
-                           json={
-                               "name": "Test User",
-                               "login": "test",
-                               "email": "test@example.com",
-                               "password": "test",
+def test_create_user(client, admin_headers):
+    response = client.post("/users", headers=admin_headers, json={
+        "name": "New User",
+        "login": "new_user_unique",
+        "password": "secret",
     })
     assert response.status_code == 201
+    assert "id" in response.json()
 
 
-def test_get_user(client, authentication_headers):
-    """
-    Test for getting a user
-    """
-    response = client.get("/users/1", headers=authentication_headers(is_admin=True))
+def test_get_user(client, admin_headers, regular_user):
+    response = client.get(f"/users/{regular_user.id}", headers=admin_headers)
     assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == regular_user.id
+    assert data["login"] == regular_user.login
 
 
-@pytest.mark.parametrize("id, name, expected_status_code",
-                         [(3, "Updated User", 200),
-                          (3, "", 400),
-                          (100, "Updated User", 404)])
-def test_update_user(client, authentication_headers, id, name, expected_status_code):
-    """
-    Test for updating a user
-    """
-    response = client.put(f"/users/{id}", headers=authentication_headers(is_admin=True),
-                          json={
-        "name": name,
-    })
-    assert response.status_code == expected_status_code
+def test_get_user_not_found(client, admin_headers):
+    response = client.get("/users/99999", headers=admin_headers)
+    assert response.status_code == 404
 
 
-@pytest.mark.parametrize("id, expected_message",
-                         [(3, "User has been deleted"),
-                          (100, "User not found")])
-def test_delete_user(client, authentication_headers, id, expected_message):
-    """
-    Test for deleting a user
-    """
-    response = client.delete(f"/users/{id}", headers=authentication_headers(is_admin=True))
-    assert response.json()["detail"] == expected_message
+@pytest.mark.parametrize("payload, expected_status", [
+    ({"name": "Updated"}, 200),
+    ({"name": ""}, 400),
+])
+def test_update_user(client, admin_headers, regular_user, payload, expected_status):
+    response = client.put(f"/users/{regular_user.id}", headers=admin_headers, json=payload)
+    assert response.status_code == expected_status
+
+
+def test_update_user_not_found(client, admin_headers):
+    response = client.put("/users/99999", headers=admin_headers, json={"name": "Ghost"})
+    assert response.status_code == 404
+
+
+def test_delete_user(client, admin_headers, regular_user):
+    response = client.delete(f"/users/{regular_user.id}", headers=admin_headers)
+    assert response.status_code == 200
+    assert response.json()["detail"] == "User has been deleted"
+
+
+def test_delete_user_not_found(client, admin_headers):
+    response = client.delete("/users/99999", headers=admin_headers)
+    assert response.json()["detail"] == "User not found"

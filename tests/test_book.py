@@ -1,61 +1,70 @@
 import pytest
 
 
-def test_get_books(client, authentication_headers):
-    """
-    Test for getting all books
-    """
-    response = client.get("/books", headers=authentication_headers())
+def test_get_books(client, user_headers):
+    response = client.get("/books", headers=user_headers)
     assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 
-@pytest.mark.parametrize("title, description, author_ids, expected_status_code",
-                         [("Test Book", "Description", [1], 201),
-                          ("", "", [], 400),
-                          ("", "Description", [1], 400),
-                          ])
-def test_create_book(client, authentication_headers, title, description, author_ids, expected_status_code):
-    """
-    Test for creating a book
-    """
-    response = client.post("/books", headers=authentication_headers(is_admin=True),
-                           json={
-                               "title": title,
-                               "description": description,
-                               "author_ids": author_ids,
+def test_create_book(client, admin_headers, author):
+    response = client.post("/books", headers=admin_headers, json={
+        "title": "New Book",
+        "description": "A description",
+        "author_ids": [author.id],
     })
-    assert response.status_code == expected_status_code
+    assert response.status_code == 201
+    data = response.json()
+    assert data["title"] == "New Book"
+    assert any(a["id"] == author.id for a in data["authors"])
 
 
-def test_get_book(client, authentication_headers):
-    """
-    Test for getting one book
-    """
-    response = client.get("/books/1", headers=authentication_headers())
-    assert response.json() == {
-        "title": "Test Book",
-        "id": 1,
-        "description": "Description",
-        "authors": [{"id": 1, "name": "Updated Author"}]
-    }
+@pytest.mark.parametrize("payload, expected_status", [
+    ({"title": "", "description": "desc", "author_ids": []}, 400),
+    ({"title": "", "description": "", "author_ids": []}, 400),
+])
+def test_create_book_invalid(client, admin_headers, payload, expected_status):
+    response = client.post("/books", headers=admin_headers, json=payload)
+    assert response.status_code == expected_status
 
 
-@pytest.mark.parametrize("id, title, expected_status_code",
-                         [(1, "Updated Title", 200),
-                          (1, "", 400),
-                          (100, "Updated Title", 404)])
-def test_update_book(client, authentication_headers, id, title, expected_status_code):
-    """
-    Test for updating a book
-    """
-    response = client.put(f"/books/{id}", headers=authentication_headers(is_admin=True),
-                          json={"title": title})
-    assert response.status_code == expected_status_code
+def test_get_book(client, user_headers, book, author):
+    response = client.get(f"/books/{book.id}", headers=user_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == book.id
+    assert data["title"] == book.title
+    assert data["description"] == book.description
+    assert any(a["id"] == author.id for a in data["authors"])
 
 
-def test_delete_book(client, authentication_headers):
-    """
-    Test for deleting a book
-    """
-    response = client.delete("/books/1", headers=authentication_headers(is_admin=True))
+def test_get_book_not_found(client, user_headers):
+    response = client.get("/books/99999", headers=user_headers)
+    assert response.status_code == 404
+
+
+def test_update_book(client, admin_headers, book):
+    response = client.put(f"/books/{book.id}", headers=admin_headers, json={"title": "Updated Title"})
+    assert response.status_code == 200
+    assert response.json()["title"] == "Updated Title"
+
+
+def test_update_book_empty_fields(client, admin_headers, book):
+    response = client.put(f"/books/{book.id}", headers=admin_headers, json={"title": ""})
+    assert response.status_code == 400
+
+
+def test_update_book_not_found(client, admin_headers):
+    response = client.put("/books/99999", headers=admin_headers, json={"title": "Ghost"})
+    assert response.status_code == 404
+
+
+def test_delete_book(client, admin_headers, book):
+    response = client.delete(f"/books/{book.id}", headers=admin_headers)
+    assert response.status_code == 200
     assert response.json()["detail"] == "Book has been deleted"
+
+
+def test_delete_book_not_found(client, admin_headers):
+    response = client.delete("/books/99999", headers=admin_headers)
+    assert response.status_code == 404
